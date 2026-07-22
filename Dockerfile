@@ -1,18 +1,15 @@
 FROM node:24-alpine
 
-ENV MONGO_DB_USERNAME=admin \
-    MONGO_DB_PWD=password
-
-RUN mkdir -p /home/app
-
-COPY ./app /home/app
-
-# set default dir so that next commands executes in /home/app dir
 WORKDIR /home/app
 
-# will execute npm install in /home/app because of WORKDIR
-RUN npm install
+# Copy dependency manifests first to maximize Docker layer cache re-use.
+COPY ./app/package*.json ./
+RUN npm ci --omit=dev
 
-# no need for /home/app/server.js because of WORKDIR
+COPY ./app ./
+
+ENV NODE_ENV=production
+EXPOSE 3000
+
 CMD ["node", "server.js"]
 

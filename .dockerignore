@@ -1,0 +1,10 @@
+# Keep build context small and avoid leaking local artifacts
+.git
+.github
+node_modules
+app/node_modules
+npm-debug.log
+Dockerfile*
+docker-compose*.yaml
+README.md
+Summary.md

@@ -70,3 +70,70 @@ Step 5: access the nodejs application from browser
     docker build -t my-app:1.0 .       
     
 The dot "." at the end of the command denotes location of the Dockerfile.
+
+## Deploy To Amazon ECS (via GitHub Actions)
+
+This repository includes a workflow at `.github/workflows/aws.yml` that:
+
+1. Builds the Docker image
+2. Pushes it to Amazon ECR
+3. Updates the ECS task definition
+4. Deploys to an ECS service
+
+### 1. Required AWS resources
+
+Create these once in your AWS account:
+
+- ECR repository (for example: `my-app`)
+- ECS cluster and ECS service (Fargate or EC2 launch type)
+- CloudWatch log group `/ecs/my-app`
+- Secrets Manager secret for Mongo URL (for example `my-app/mongo-url`)
+
+### 2. Configure task definition in repo
+
+Edit `.aws/task-definition.json` and replace placeholder values:
+
+- `executionRoleArn`
+- `taskRoleArn`
+- `image` (account id + region + repository)
+- `secrets[].valueFrom` for `MONGO_URL`
+- `logConfiguration.options.awslogs-region`
+
+Container name must stay `my-app` unless you also update `CONTAINER_NAME` in the workflow.
+
+### 3. Configure GitHub repository variables
+
+In GitHub repository settings, add **Actions variables**:
+
+- `AWS_REGION` (example: `eu-central-1`)
+- `ECR_REPOSITORY` (example: `my-app`)
+- `ECS_CLUSTER` (your cluster name)
+- `ECS_SERVICE` (your service name)
+
+### 4. Configure GitHub repository secret
+
+Add **Actions secret**:
+
+- `AWS_ROLE_TO_ASSUME` = IAM role ARN trusted for GitHub OIDC
+
+Recommended best practice is OIDC role assumption (used by the workflow), not long-lived IAM user access keys.
+
+### 5. Configure IAM trust for GitHub OIDC
+
+Create an IAM role that trusts GitHub's OIDC provider and restrict it to your repo/branch. Attach policy permissions for:
+
+- `ecr:GetAuthorizationToken`
+- `ecr:BatchCheckLayerAvailability`
+- `ecr:CompleteLayerUpload`
+- `ecr:InitiateLayerUpload`
+- `ecr:PutImage`
+- `ecr:UploadLayerPart`
+- `ecs:DescribeServices`
+- `ecs:DescribeTaskDefinition`
+- `ecs:RegisterTaskDefinition`
+- `ecs:UpdateService`
+- `iam:PassRole` (for your ECS execution/task roles)
+
+### 6. Deploy
+
+Push to `main` or trigger the workflow manually from GitHub Actions. The workflow deploys the image tagged with the commit SHA.

@@ -51,7 +51,7 @@ app.post('/update-profile', function (req, res) {
       });
     }
 
-    const db = client.db('user-account');
+    const db = client.db(DATABASE_NAME);
     const myquery = { userid: 1 };
     const newvalues = { $set: userObj };
 
@@ -78,7 +78,7 @@ app.get('/get-profile', function (req, res) {
       return res.send(DEFAULT_PROFILE);
     }
 
-    const db = client.db('user-account');
+    const db = client.db(DATABASE_NAME);
     const myquery = { userid: 1 };
 
     db.collection('users').findOne(myquery, function (err, result) {
