@@ -11,10 +11,10 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  AWS_REGION: ${{ vars.AWS_REGION }}
-  ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
-  ECS_SERVICE: ${{ vars.ECS_SERVICE }}
-  ECS_CLUSTER: ${{ vars.ECS_CLUSTER }}
+  AWS_REGION: eu-central-1
+  ECR_REPOSITORY: my-app
+  ECS_SERVICE: my-app-github-action-service
+  ECS_CLUSTER: my-app-github-action-cluster
   ECS_TASK_DEFINITION: .aws/task-definition.json
   CONTAINER_NAME: my-app
 
@@ -26,24 +26,15 @@ jobs:
   deploy:
     name: Build and deploy
     runs-on: ubuntu-latest
-    environment: production
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Validate required repository configuration
-        run: |
-          test -n "${AWS_REGION}" || (echo "Missing repo variable AWS_REGION"; exit 1)
-          test -n "${ECR_REPOSITORY}" || (echo "Missing repo variable ECR_REPOSITORY"; exit 1)
-          test -n "${ECS_SERVICE}" || (echo "Missing repo variable ECS_SERVICE"; exit 1)
-          test -n "${ECS_CLUSTER}" || (echo "Missing repo variable ECS_CLUSTER"; exit 1)
-          test -n "${{ secrets.AWS_ROLE_TO_ASSUME }}" || (echo "Missing repo secret AWS_ROLE_TO_ASSUME"; exit 1)
-
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          role-to-assume: arn:aws:iam::929862311755:role/GitHubActionsECSDeployRole
           role-session-name: github-actions-ecs-deploy
           aws-region: ${{ env.AWS_REGION }}
 
