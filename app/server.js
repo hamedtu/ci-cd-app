@@ -1,80 +1,99 @@
-let express = require('express');
-let path = require('path');
-let fs = require('fs');
-let MongoClient = require('mongodb').MongoClient;
-let bodyParser = require('body-parser');
-let app = express();
+const express = require('express');
+const path = require('path');
+const MongoClient = require('mongodb').MongoClient;
+const bodyParser = require('body-parser');
+const app = express();
 
-app.use(bodyParser.urlencoded({
-  extended: true
-}));
+const PORT = process.env.PORT || 3000;
+const DATABASE_NAME = process.env.MONGO_DB_NAME || 'my-db';
+const MONGO_URL = process.env.MONGO_URL || 'mongodb://admin:password@localhost:27017';
+const MONGO_CLIENT_OPTIONS = {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  serverSelectionTimeoutMS: 1200
+};
+
+const DEFAULT_PROFILE = {
+  userid: 1,
+  name: 'Hamed Kelardeh',
+  email: 'hamed.kelardeh@example.com',
+  interests: 'Physics, Programming, and Docker'
+};
+
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-app.get('/', function (req, res) {
-    res.sendFile(path.join(__dirname, "index.html"));
-  });
+// Serve static assets like images directly from the app folder.
+app.use(express.static(__dirname));
 
-app.get('/profile-picture', function (req, res) {
-  let img = fs.readFileSync(path.join(__dirname, "images/profile-1.jpg"));
-  res.writeHead(200, {'Content-Type': 'image/jpg' });
-  res.end(img, 'binary');
+app.get('/', function (req, res) {
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// use when starting application locally
-let mongoUrlLocal = "mongodb://admin:password@localhost:27017";
-
-// use when starting application as docker container
-let mongoUrlDocker = "mongodb://admin:password@mongodb";
-
-// pass these options to mongo client connect request to avoid DeprecationWarning for current Server Discovery and Monitoring engine
-let mongoClientOptions = { useNewUrlParser: true, useUnifiedTopology: true };
-
-// "user-account" in demo with docker. "my-db" in demo with docker-compose
-let databaseName = "my-db";
+app.get('/health', function (_req, res) {
+  res.send({ status: 'ok' });
+});
 
 app.post('/update-profile', function (req, res) {
-  let userObj = req.body;
+  const userObj = {
+    userid: 1,
+    name: req.body.name || DEFAULT_PROFILE.name,
+    email: req.body.email || DEFAULT_PROFILE.email,
+    interests: req.body.interests || DEFAULT_PROFILE.interests
+  };
 
-  MongoClient.connect(mongoUrlLocal, mongoClientOptions, function (err, client) {
-    if (err) throw err;
+  MongoClient.connect(MONGO_URL, MONGO_CLIENT_OPTIONS, function (err, client) {
+    if (err) {
+      console.error('Mongo connect failed in /update-profile:', err.message);
+      return res.status(503).send({
+        ...userObj,
+        warning: 'Database unavailable, profile not persisted.'
+      });
+    }
 
-    let db = client.db(databaseName);
-    userObj['userid'] = 1;
+    const db = client.db('user-account');
+    const myquery = { userid: 1 };
+    const newvalues = { $set: userObj };
 
-    let myquery = { userid: 1 };
-    let newvalues = { $set: userObj };
-
-    db.collection("users").updateOne(myquery, newvalues, {upsert: true}, function(err, res) {
-      if (err) throw err;
+    db.collection('users').updateOne(myquery, newvalues, { upsert: true }, function (err) {
+      if (err) {
+        console.error('Mongo write failed in /update-profile:', err.message);
+        client.close();
+        return res.status(500).send({
+          ...userObj,
+          warning: 'Database write failed.'
+        });
+      }
       client.close();
+      res.send(userObj);
     });
 
   });
-  // Send response
-  res.send(userObj);
 });
 
 app.get('/get-profile', function (req, res) {
-  let response = {};
-  // Connect to the db
-  MongoClient.connect(mongoUrlLocal, mongoClientOptions, function (err, client) {
-    if (err) throw err;
+  MongoClient.connect(MONGO_URL, MONGO_CLIENT_OPTIONS, function (err, client) {
+    if (err) {
+      console.error('Mongo connect failed in /get-profile:', err.message);
+      return res.send(DEFAULT_PROFILE);
+    }
 
-    let db = client.db(databaseName);
+    const db = client.db('user-account');
+    const myquery = { userid: 1 };
 
-    let myquery = { userid: 1 };
+    db.collection('users').findOne(myquery, function (err, result) {
+      if (err) {
+        console.error('Mongo read failed in /get-profile:', err.message);
+        client.close();
+        return res.send(DEFAULT_PROFILE);
+      }
 
-    db.collection("users").findOne(myquery, function (err, result) {
-      if (err) throw err;
-      response = result;
       client.close();
-
-      // Send response
-      res.send(response ? response : {});
+      res.send(result ? result : DEFAULT_PROFILE);
     });
   });
 });
 
-app.listen(3000, function () {
-  console.log("app listening on port 3000!");
+app.listen(PORT, function () {
+  console.log(`app listening on port ${PORT}!`);
 });
