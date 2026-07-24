@@ -1,7 +1,7 @@
 
 ## Project Overview
 
-This is an end-to-end cloud deployment project where I took a local Dockerized application and turned it into a production-style AWS deployment with CI/CD.
+This is an end-to-end cloud deployment project that takes a Dockerized application and deploys it into AWS with CI/CD automation.
 
 The application is a profile web app built with Node.js, MongoDB, and JavaScript. I containerized the app, implemented automated delivery with GitHub Actions, and deployed it on Amazon ECS.
 
