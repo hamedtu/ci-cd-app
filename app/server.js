@@ -1,5 +1,6 @@
 const express = require('express');
 const path = require('path');
+const fs = require('fs');
 const MongoClient = require('mongodb').MongoClient;
 const bodyParser = require('body-parser');
 const app = express();
@@ -13,12 +14,67 @@ const MONGO_CLIENT_OPTIONS = {
   serverSelectionTimeoutMS: 1200
 };
 
+const GENERATED_PORTFOLIO_PATH = path.join(__dirname, 'data', 'portfolio.generated.json');
+const SEED_PORTFOLIO_PATH = path.join(__dirname, 'data', 'portfolio.seed.json');
+
 const DEFAULT_PROFILE = {
   userid: 1,
   name: 'Hamed Kelardeh',
   email: 'hamed.kelardeh@example.com',
   interests: 'Physics, Programming, and Docker'
 };
+
+function readJsonIfPresent(filePath) {
+  if (!fs.existsSync(filePath)) {
+    return null;
+  }
+
+  try {
+    const raw = fs.readFileSync(filePath, 'utf-8');
+    return JSON.parse(raw);
+  } catch (error) {
+    console.error('Failed to parse JSON file:', filePath, error.message);
+    return null;
+  }
+}
+
+function loadPortfolioModel() {
+  const generated = readJsonIfPresent(GENERATED_PORTFOLIO_PATH);
+  const seed = readJsonIfPresent(SEED_PORTFOLIO_PATH);
+
+  if (generated) {
+    return generated;
+  }
+
+  if (seed) {
+    return seed;
+  }
+
+  return {
+    source: {
+      repo: process.env.CV_REPO || 'hamedtu/CV',
+      ref: process.env.CV_REF || 'main',
+      generatedAt: new Date().toISOString(),
+      mode: 'fallback'
+    },
+    profile: {
+      name: 'Hamed KoochakiKelardeh',
+      title: 'Senior Data Platform Architect | DevOps & MLOps Engineer',
+      summary: 'Designing secure, scalable data and ML platforms with strong delivery, observability, and governance practices.'
+    },
+    capabilities: [],
+    caseStudies: [],
+    impactMetrics: [],
+    certifications: [],
+    contact: {
+      github: 'https://github.com/hamedtu',
+      linkedin: '',
+      email: ''
+    }
+  };
+}
+
+let portfolioModel = loadPortfolioModel();
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -32,6 +88,11 @@ app.get('/', function (req, res) {
 
 app.get('/health', function (_req, res) {
   res.send({ status: 'ok' });
+});
+
+app.get('/api/portfolio', function (_req, res) {
+  portfolioModel = loadPortfolioModel();
+  res.send(portfolioModel);
 });
 
 app.post('/update-profile', function (req, res) {

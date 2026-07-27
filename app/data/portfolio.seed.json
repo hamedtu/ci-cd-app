@@ -1,0 +1,105 @@
+{
+  "source": {
+    "repo": "hamedtu/CV",
+    "ref": "main",
+    "generatedAt": "2026-07-27T00:00:00.000Z",
+    "mode": "seed"
+  },
+  "profile": {
+    "name": "Hamed KoochakiKelardeh",
+    "title": "Senior Data Platform Architect | DevOps & MLOps Engineer",
+    "summary": "I architect and operate production-grade data and ML platforms across cloud environments, with a focus on reliability, security, delivery velocity, and measurable business outcomes.",
+    "location": "EU",
+    "tagline": "Building data platforms that scale from ingestion to intelligence."
+  },
+  "impactMetrics": [
+    {
+      "label": "Platform Reliability",
+      "value": "99.9%",
+      "description": "Designed for availability with health checks, resilient rollout, and observability-first operations."
+    },
+    {
+      "label": "Deployment Automation",
+      "value": "End-to-End",
+      "description": "GitHub Actions to Amazon ECS with OIDC-based authentication and immutable container releases."
+    },
+    {
+      "label": "Delivery Pattern",
+      "value": "CI/CD",
+      "description": "Automated build, scan-ready image promotion, and service stability verification on deploy."
+    }
+  ],
+  "capabilities": [
+    {
+      "domain": "Data Platform Architecture",
+      "items": [
+        "Data modeling and lifecycle design",
+        "Batch and service-oriented data pipelines",
+        "Data governance, reproducibility, and platform standards"
+      ]
+    },
+    {
+      "domain": "DevOps and Platform Engineering",
+      "items": [
+        "Containerized workloads with Docker and ECS",
+        "GitHub Actions automation with OIDC and least privilege",
+        "Environment promotion and release traceability"
+      ]
+    },
+    {
+      "domain": "MLOps Foundations",
+      "items": [
+        "Operational ML delivery patterns",
+        "Monitoring-first deployment mindset",
+        "Automated retraining and governance readiness"
+      ]
+    }
+  ],
+  "caseStudies": [
+    {
+      "title": "AWS ECS CI/CD Delivery Platform",
+      "challenge": "Create a secure and repeatable deployment pathway from source control to production runtime.",
+      "approach": [
+        "Implemented GitHub Actions pipeline for build, push, and deploy",
+        "Used OIDC role assumption instead of static cloud credentials",
+        "Integrated ECS task definition rendering for immutable image rollout",
+        "Added health checks and wait-for-stability deployment gates"
+      ],
+      "outcome": "Production deployments run from main branch with traceable image versions and service health validation.",
+      "stack": [
+        "GitHub Actions",
+        "Amazon ECS Fargate",
+        "Amazon ECR",
+        "IAM OIDC",
+        "Node.js",
+        "Docker"
+      ]
+    },
+    {
+      "title": "Stable Public Endpoint Architecture",
+      "challenge": "Replace ephemeral task IP access with a stable and reliable URL.",
+      "approach": [
+        "Provisioned Application Load Balancer and target group",
+        "Configured routing to ECS service tasks on container port",
+        "Applied security group rules for ALB-to-service communication",
+        "Validated health endpoint and production traffic flow"
+      ],
+      "outcome": "Service exposed through a stable ALB endpoint suitable for portfolio and production demonstrations.",
+      "stack": [
+        "Application Load Balancer",
+        "ECS Service",
+        "Security Groups",
+        "Health Checks"
+      ]
+    }
+  ],
+  "certifications": [
+    "Cloud architecture and delivery best-practice orientation",
+    "Production deployment and operations troubleshooting experience"
+  ],
+  "contact": {
+    "github": "https://github.com/hamedtu",
+    "linkedin": "https://www.linkedin.com",
+    "email": "contact@hamedtu.dev"
+  }
+}

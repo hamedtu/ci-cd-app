@@ -1,142 +1,418 @@
+<!DOCTYPE html>
 <html lang="en">
-<style>
-    .container {
-        margin: 40px auto;
-        width: 80%;
-    }
-    .button {
-        width: 160px;
-        height: 45px;
-        border-radius: 6px;
-        font-size: 15px;
-        margin-top: 20px;
-    }
-    img {
-        width: 328px;
-        height: 287px;
-        display: block;
-        margin-bottom: 20px;
-    }
-    hr {
-        width: 400px;
-        margin-left: 0;
-    }
-    h3 {
-        display: inline-block;
-    }
-    #container {
-        display: none;
-    }
-    #container-edit {
-        display: none;
-    }
-    #container-edit input {
-        height: 32px;
-    }
-    #container-edit hr {
-        margin: 25px 0;
-    }
-    #container-edit input {
-        width: 195px;
-        font-size: 15px;
-    }
-</style>
-<script>
-    const DEFAULT_PROFILE = {
-        name: 'Hamed Kelardeh',
-        email: 'hamed.kelardeh@example.com',
-        interests: 'Physics, Programming, and Docker'
-    };
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Platform and MLOps Portfolio</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Roboto+Mono:wght@400;500&display=swap');
 
-    function renderProfile(user) {
-        document.getElementById('name').textContent = user.name || DEFAULT_PROFILE.name;
-        document.getElementById('email').textContent = user.email || DEFAULT_PROFILE.email;
-        document.getElementById('interests').textContent = user.interests || DEFAULT_PROFILE.interests;
-    }
+        :root {
+            --bg-1: #f4efe8;
+            --bg-2: #ece7df;
+            --surface: #fffdfa;
+            --ink: #1f2933;
+            --ink-soft: #52606d;
+            --accent: #174a7e;
+            --accent-2: #e2a336;
+            --line: #d9d4cc;
+            --ok: #0e8a4e;
+            --shadow: 0 16px 45px rgba(24, 39, 56, 0.14);
+        }
 
-    async function init() {
-        const cont = document.getElementById('container');
-        cont.style.display = 'block';
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-        try {
-            const response = await fetch('/get-profile');
-            if (!response.ok) {
-                throw new Error('Failed to load profile');
+        body {
+            font-family: 'Manrope', sans-serif;
+            color: var(--ink);
+            background: radial-gradient(circle at 85% 10%, #f6e4c9 0, transparent 30%),
+                                    radial-gradient(circle at 15% 80%, #dbe7f8 0, transparent 30%),
+                                    linear-gradient(145deg, var(--bg-1), var(--bg-2));
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 24px;
+        }
+
+        .page-shell {
+            max-width: 1180px;
+            margin: 0 auto;
+            animation: fade-in 800ms ease-out;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, rgba(23, 74, 126, 0.95), rgba(15, 41, 72, 0.95));
+            color: #f7f5f1;
+            border-radius: 26px;
+            padding: 40px;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            width: 280px;
+            height: 280px;
+            border-radius: 50%;
+            background: rgba(226, 163, 54, 0.3);
+            top: -95px;
+            right: -80px;
+            filter: blur(2px);
+        }
+
+        .hero h1 {
+            font-size: clamp(2rem, 4vw, 3.4rem);
+            line-height: 1.1;
+            max-width: 860px;
+            letter-spacing: -0.02em;
+        }
+
+        .hero p {
+            margin-top: 18px;
+            max-width: 840px;
+            color: #dfe9f6;
+            font-size: 1.07rem;
+        }
+
+        .hero-actions {
+            margin-top: 24px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .btn {
+            border: 0;
+            border-radius: 999px;
+            padding: 12px 20px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            text-decoration: none;
+            transition: transform 180ms ease, box-shadow 180ms ease;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
+        }
+
+        .btn-primary {
+            background: var(--accent-2);
+            color: #1f2b32;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.16);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+
+        .panel {
+            margin-top: 22px;
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            padding: 28px;
+            box-shadow: var(--shadow);
+        }
+
+        .section-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .section-title h2 {
+            font-size: 1.35rem;
+            letter-spacing: -0.01em;
+        }
+
+        .meta {
+            font-size: 0.8rem;
+            color: var(--ink-soft);
+            font-family: 'Roboto Mono', monospace;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+        }
+
+        .metric {
+            background: #faf8f3;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 14px;
+        }
+
+        .metric strong {
+            display: block;
+            font-size: 1.6rem;
+            color: var(--accent);
+            margin-top: 3px;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 18px;
+            margin-top: 18px;
+        }
+
+        .list {
+            list-style: none;
+            display: grid;
+            gap: 12px;
+        }
+
+        .list li {
+            background: #fcfbf8;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 12px;
+        }
+
+        .case {
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 16px;
+            background: #fff;
+            margin-bottom: 12px;
+        }
+
+        .case h3 {
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            color: #12395f;
+        }
+
+        .pill-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .pill {
+            border-radius: 999px;
+            border: 1px solid #ccd8e7;
+            background: #eef3fa;
+            padding: 4px 10px;
+            font-size: 0.78rem;
+            color: #23435f;
+            font-family: 'Roboto Mono', monospace;
+        }
+
+        .footer-note {
+            margin-top: 16px;
+            font-size: 0.82rem;
+            color: var(--ink-soft);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--ok);
+            display: inline-block;
+        }
+
+        @media (max-width: 900px) {
+            body {
+                padding: 14px;
             }
-            const user = await response.json();
-            renderProfile(user || {});
-        } catch (_err) {
-            renderProfile(DEFAULT_PROFILE);
-        }
-    }
 
-    // Ensure the DOM is fully loaded before querying elements.
-    document.addEventListener('DOMContentLoaded', init);
+            .hero,
+            .panel {
+                padding: 22px;
+            }
 
-    async function handleUpdateProfileRequest() {
-        const contEdit = document.getElementById('container-edit');
-        const cont = document.getElementById('container');
-
-        const payload = {
-            name: document.getElementById('input-name').value, 
-            email: document.getElementById('input-email').value, 
-            interests: document.getElementById('input-interests').value
-        };
-        
-        try {
-            const response = await fetch('/update-profile', {
-                method: "POST",
-                headers: {
-                  'Accept': 'application/json',
-                  'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(payload)
-            });
-
-            const jsonResponse = await response.json().catch(() => payload);
-            renderProfile(jsonResponse || payload || DEFAULT_PROFILE);
-        } catch (_err) {
-            renderProfile(payload || DEFAULT_PROFILE);
+            .layout {
+                grid-template-columns: 1fr;
+            }
         }
 
-        cont.style.display = 'block';
-        contEdit.style.display = 'none';
-    }
-
-    function updateProfile() {
-        const contEdit = document.getElementById('container-edit');
-        const cont = document.getElementById('container');
-
-        document.getElementById('input-name').value = document.getElementById('name').textContent;
-        document.getElementById('input-email').value = document.getElementById('email').textContent;
-        document.getElementById('input-interests').value = document.getElementById('interests').textContent;
-
-        cont.style.display = 'none';
-        contEdit.style.display = 'block';
-    }
-</script>
+        @keyframes fade-in {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
 <body>
-    <div class='container' id='container'>
-        <h1>User profile</h1>
-        <img src='images/profile-1.jpg' alt="user-profile">
-        <span>Name: </span><h3 id='name'></h3>
-        <hr />
-        <span>Email: </span><h3 id='email'></h3>
-        <hr />
-        <span>Interests: </span><h3 id='interests'></h3>
-        <hr />
-        <button class='button' onclick="updateProfile()">Edit Profile</button>
-    </div>
-    <div class='container' id='container-edit'>
-        <h1>User profile</h1>
-        <img src='images/profile-1.jpg' alt="user-profile">
-        <span>Name: </span><label for='input-name'></label><input type="text" id='input-name' value='' />
-        <hr />
-        <span>Email: </span><label for='input-email'></label><input type="email" id='input-email' value='' />
-        <hr />
-        <span>Interests: </span><label for='input-interests'></label><input type="text" id='input-interests' value='' />
-        <hr />
-        <button class='button' onclick="handleUpdateProfileRequest()">Update Profile</button>
-    </div>
+    <main class="page-shell">
+        <section class="hero">
+            <h1 id="hero-title">Senior Data Platform Architect and DevOps MLOps Engineer</h1>
+            <p id="hero-summary">
+                Building resilient data and ML systems with strong architecture principles, secure delivery pipelines,
+                and production-grade operational standards.
+            </p>
+            <div class="hero-actions">
+                <a class="btn btn-primary" id="github-link" href="https://github.com/hamedtu" target="_blank" rel="noreferrer">GitHub Profile</a>
+                <a class="btn btn-secondary" id="linkedin-link" href="https://www.linkedin.com" target="_blank" rel="noreferrer">LinkedIn</a>
+            </div>
+        </section>
+
+        <section class="panel">
+            <div class="section-title">
+                <h2>Impact Metrics</h2>
+                <span class="meta" id="source-meta">Loading source...</span>
+            </div>
+            <div class="metrics-grid" id="metrics-grid"></div>
+        </section>
+
+        <section class="layout">
+            <article class="panel">
+                <div class="section-title">
+                    <h2>Architecture Case Studies</h2>
+                    <span class="meta">Delivery and operating model</span>
+                </div>
+                <div id="case-studies"></div>
+            </article>
+
+            <aside class="panel">
+                <div class="section-title">
+                    <h2>Capabilities</h2>
+                    <span class="meta">Platform depth</span>
+                </div>
+                <div id="capabilities"></div>
+            </aside>
+        </section>
+
+        <section class="layout">
+            <article class="panel">
+                <div class="section-title">
+                    <h2>Certifications and Strengths</h2>
+                    <span class="meta">Continuous learning and standards</span>
+                </div>
+                <ul class="list" id="certifications"></ul>
+            </article>
+
+            <article class="panel">
+                <div class="section-title">
+                    <h2>Technical Contact</h2>
+                    <span class="meta">Architecture discussions</span>
+                </div>
+                <ul class="list" id="contact-list"></ul>
+                <div class="footer-note">
+                    <span class="dot"></span>
+                    <span>Live model generated from CV repository and served via ECS deployment pipeline.</span>
+                </div>
+            </article>
+        </section>
+    </main>
+
+    <script>
+        function createMetricCard(metric) {
+            return `
+                <article class="metric">
+                    <span>${metric.label || 'Metric'}</span>
+                    <strong>${metric.value || 'N/A'}</strong>
+                    <p>${metric.description || ''}</p>
+                </article>
+            `;
+        }
+
+        function createCaseStudyCard(study) {
+            const approach = (study.approach || []).map((item) => `<li>${item}</li>`).join('');
+            const stack = (study.stack || []).map((item) => `<span class="pill">${item}</span>`).join('');
+
+            return `
+                <article class="case">
+                    <h3>${study.title || 'Case Study'}</h3>
+                    <p><strong>Challenge:</strong> ${study.challenge || ''}</p>
+                    <ul class="list" style="margin-top: 8px;">
+                        ${approach}
+                    </ul>
+                    <p style="margin-top: 8px;"><strong>Outcome:</strong> ${study.outcome || ''}</p>
+                    <div class="pill-row">${stack}</div>
+                </article>
+            `;
+        }
+
+        function createCapabilityGroup(group) {
+            const items = (group.items || []).map((item) => `<li>${item}</li>`).join('');
+            return `
+                <article class="case" style="margin-bottom: 10px;">
+                    <h3>${group.domain || 'Capability'}</h3>
+                    <ul class="list">${items}</ul>
+                </article>
+            `;
+        }
+
+        function createSimpleListItem(text) {
+            return `<li>${text}</li>`;
+        }
+
+        function createContactItems(contact) {
+            return [
+                `<li><strong>Email:</strong> ${contact.email || 'n/a'}</li>`,
+                `<li><strong>GitHub:</strong> <a href="${contact.github || '#'}" target="_blank" rel="noreferrer">${contact.github || 'n/a'}</a></li>`,
+                `<li><strong>LinkedIn:</strong> <a href="${contact.linkedin || '#'}" target="_blank" rel="noreferrer">${contact.linkedin || 'n/a'}</a></li>`
+            ].join('');
+        }
+
+        async function loadPortfolio() {
+            const response = await fetch('/api/portfolio');
+            if (!response.ok) {
+                throw new Error('Portfolio endpoint unavailable');
+            }
+            return response.json();
+        }
+
+        function renderModel(model) {
+            const profile = model.profile || {};
+            const source = model.source || {};
+            const contact = model.contact || {};
+
+            document.getElementById('hero-title').textContent = `${profile.name || 'Professional Portfolio'} | ${profile.title || 'Architecture and DevOps'}`;
+            document.getElementById('hero-summary').textContent = profile.summary || '';
+            document.getElementById('source-meta').textContent = `source: ${source.repo || 'seed'} @ ${source.ref || 'main'} (${source.mode || 'n/a'})`;
+
+            const githubLink = document.getElementById('github-link');
+            const linkedinLink = document.getElementById('linkedin-link');
+            if (contact.github) {
+                githubLink.href = contact.github;
+            }
+            if (contact.linkedin) {
+                linkedinLink.href = contact.linkedin;
+            }
+
+            document.getElementById('metrics-grid').innerHTML = (model.impactMetrics || []).map(createMetricCard).join('');
+            document.getElementById('case-studies').innerHTML = (model.caseStudies || []).map(createCaseStudyCard).join('');
+            document.getElementById('capabilities').innerHTML = (model.capabilities || []).map(createCapabilityGroup).join('');
+            document.getElementById('certifications').innerHTML = (model.certifications || []).map(createSimpleListItem).join('');
+            document.getElementById('contact-list').innerHTML = createContactItems(contact);
+        }
+
+        async function init() {
+            try {
+                const model = await loadPortfolio();
+                renderModel(model);
+            } catch (error) {
+                document.getElementById('hero-summary').textContent = 'Portfolio model could not be loaded. Please verify deployment and ingestion pipeline logs.';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
 </body>
 </html>
