@@ -5,3 +5,6 @@ node_modules
 .idea/*
 
 app/data/portfolio.generated.json
+app/images/profile-1.jpg
+docker-compose.yaml
+docker-compose.deploy.yaml
