@@ -4,6 +4,7 @@ const path = require('path');
 const ownerRepo = process.env.CV_REPO || 'hamedtu/CV';
 const sourceRef = process.env.CV_REF || 'main';
 const githubToken = process.env.GITHUB_TOKEN || '';
+const preferredLinkedin = process.env.CV_LINKEDIN_URL || 'https://www.linkedin.com/in/hamed-koochaki-kelardeh-phd-8a70133b/';
 
 const rootDir = path.join(__dirname, '..');
 const dataDir = path.join(rootDir, 'data');
@@ -71,9 +72,23 @@ function pickFirstNonEmpty(lines) {
 function toBullets(lines) {
   return lines
     .map((line) => line.trim())
-    .filter((line) => /^[-*]\s+/.test(line))
-    .map((line) => line.replace(/^[-*]\s+/, '').trim())
+    .filter((line) => /^([-*]|•|→|\d+[.)])\s*/.test(line))
+    .map((line) => line.replace(/^([-*]|•|→|\d+[.)])\s*/, '').trim())
     .filter(Boolean);
+}
+
+function isPlaceholderEmail(value) {
+  if (!value) {
+    return true;
+  }
+
+  const lower = value.toLowerCase();
+  return lower.includes('firstname.lastname') || lower.includes('example.com');
+}
+
+function normalizeLinkedin(value) {
+  // Keep a canonical profile URL in the deployed portfolio even if source CV uses an older slug.
+  return value;
 }
 
 function findByHeading(sections, candidates) {
@@ -147,8 +162,8 @@ function buildModel(seed, markdownFiles) {
     certifications: dedupe([...inferredCerts, ...seed.certifications]).slice(0, 8),
     contact: {
       github: contact.github || seed.contact.github,
-      linkedin: contact.linkedin || seed.contact.linkedin,
-      email: contact.email || seed.contact.email
+      linkedin: normalizeLinkedin(preferredLinkedin),
+      email: isPlaceholderEmail(contact.email) ? seed.contact.email : (contact.email || seed.contact.email)
     }
   };
 
