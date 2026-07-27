@@ -1,56 +1,74 @@
 
 ## Project Overview
 
-This is an end-to-end cloud deployment project that takes a Dockerized application and deploys it into AWS with CI/CD automation.
+This repository hosts a production-focused profile platform deployed to AWS ECS using GitHub Actions.
 
-The application is a profile web app built with Node.js, MongoDB, and JavaScript. I containerized the app, implemented automated delivery with GitHub Actions, and deployed it on Amazon ECS.
+The homepage is CV-driven: content is ingested from `https://github.com/hamedtu/CV` during container build, normalized into a portfolio model, and rendered by the Node.js app.
 
-## Architecture
+## Production Architecture
 
-1. Developer pushes code to `main`
-2. GitHub Actions workflow runs
-3. Docker image is built and tagged 
-4. Image is pushed to Amazon ECR
-5. ECS task definition is rendered with the new image URI
-6. ECS service is updated and waits for stability
-7. ALB routes public traffic to healthy ECS tasks
+1. Code is pushed to `main`.
+2. GitHub Actions workflow builds a Docker image.
+3. CV ingestion runs at image build time.
+4. Image is pushed to Amazon ECR.
+5. ECS task definition is rendered with the new image URI.
+6. ECS service is updated and checked for stability.
+7. ALB routes traffic to healthy ECS tasks.
 
-## Repository Files Used For Deployment
+## Repository Scope (Kept on GitHub)
 
-- `.github/workflows/aws.yml`: CI/CD workflow
-- `.aws/task-definition.json`: ECS task definition
-- `Dockerfile`: production image build
-- `.dockerignore`: build context optimization
+Only files required for the upgraded profile and deployment pipeline are tracked.
 
-## Docker Containerization
+- `.github/workflows/aws.yml`: CI/CD workflow (build + deploy)
+- `.aws/task-definition.json`: ECS runtime task definition
+- `Dockerfile`: production image build including CV ingestion
+- `.dockerignore`: Docker context optimization
+- `.gitignore`: local-only and generated-file exclusions
+- `app/server.js`: app server + `/api/portfolio` endpoint
+- `app/index.html`: professional homepage UI
+- `app/package.json`: scripts and dependencies
+- `app/package-lock.json`: dependency lockfile
+- `app/scripts/ingest-cv.js`: CV ingestion and normalization pipeline
+- `app/data/portfolio.seed.json`: curated fallback content model
 
-Build locally:
+## Local-Only Files
+
+Some older files are intentionally untracked for local reference and are excluded from GitHub.
+
+- `docker-compose.yaml`
+- `docker-compose.deploy.yaml`
+- `app/images/profile-1.jpg`
+
+## Build and Run
+
+Build the production image locally:
 
 ```bash
 docker build -t my-app:1.0 .
 ```
 
-Run local stack with Docker Compose:
+Run the app container locally:
 
 ```bash
-docker compose -f docker-compose.yaml up -d
+docker run --rm -p 3000:3000 my-app:1.0
 ```
 
-Local endpoints:
+Open:
 
-- App: http://localhost:3000
-- Mongo Express: http://localhost:8080
+- http://localhost:3000
 
-## CI/CD Workflow [ Deploy To Amazon ECS via GitHub Actions]
+## CI/CD Workflow
 
-The workflow in `.github/workflows/aws.yml` performs:
+Workflow file: `.github/workflows/aws.yml`
 
-1. Checkout repository
-2. Configure AWS credentials using OIDC role assumption
-3. Login to Amazon ECR
-4. Build and push Docker image tagged with `${{ github.sha }}`
-5. Render ECS task definition with the new image
-6. Deploy updated task definition to ECS service
+Main steps:
+
+1. Checkout repository.
+2. Configure AWS credentials with OIDC.
+3. Login to ECR.
+4. Build and push image tagged with `${{ github.sha }}`.
+5. Render ECS task definition with image URI.
+6. Deploy to ECS service and wait for stability.
 
 Trigger deployment:
 
@@ -58,22 +76,17 @@ Trigger deployment:
 git push origin main
 ```
 
-Or run manually from GitHub Actions using `workflow_dispatch`.
-
-## AWS Resources (Current Setup)
+## AWS Deployment Context
 
 - Region: `eu-central-1`
 - ECR repository: `my-app`
 - ECS cluster: `my-app-github-action-cluster`
 - ECS service: `my-app-github-action-service`
 - Task definition family: `my-app-task`
-- Runtime secret: `my-app/mongo-url` (Secrets Manager)
-- Logs: CloudWatch log group `/ecs/my-app`
-- ALB: `my-app-alb`
+- CloudWatch log group: `/ecs/my-app`
+- Load balancer: `my-app-alb`
 
-## Access The App On AWS Endpoint
+## Public Endpoint
 
-Stable public endpoint (ALB DNS):
-
-- App UI: http://my-app-alb-1500991790.eu-central-1.elb.amazonaws.com
+- http://my-app-alb-1500991790.eu-central-1.elb.amazonaws.com
 
