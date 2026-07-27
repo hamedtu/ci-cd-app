@@ -53,6 +53,34 @@
             overflow: hidden;
         }
 
+        .hero-grid {
+            display: grid;
+            grid-template-columns: 1fr 230px;
+            gap: 24px;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-copy {
+            min-width: 0;
+        }
+
+        .hero-photo-wrap {
+            display: flex;
+            justify-content: center;
+        }
+
+        .hero-photo {
+            width: 200px;
+            height: 200px;
+            border-radius: 20px;
+            object-fit: cover;
+            border: 3px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
         .hero::after {
             content: '';
             position: absolute;
@@ -240,6 +268,15 @@
                 padding: 22px;
             }
 
+            .hero-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-photo {
+                width: 170px;
+                height: 170px;
+            }
+
             .layout {
                 grid-template-columns: 1fr;
             }
@@ -260,14 +297,26 @@
 <body>
     <main class="page-shell">
         <section class="hero">
-            <h1 id="hero-title">Senior Data Platform Architect and DevOps MLOps Engineer</h1>
-            <p id="hero-summary">
-                Building resilient data and ML systems with strong architecture principles, secure delivery pipelines,
-                and production-grade operational standards.
-            </p>
-            <div class="hero-actions">
-                <a class="btn btn-primary" id="github-link" href="https://github.com/hamedtu" target="_blank" rel="noreferrer">GitHub Profile</a>
-                <a class="btn btn-secondary" id="linkedin-link" href="https://www.linkedin.com/in/hamed-koochaki-kelardeh-phd-8a70133b/" target="_blank" rel="noreferrer">LinkedIn</a>
+            <div class="hero-grid">
+                <div class="hero-copy">
+                    <h1 id="hero-title">Senior Data Platform Architect and DevOps MLOps Engineer</h1>
+                    <p id="hero-summary">
+                        Building resilient data and ML systems with strong architecture principles, secure delivery pipelines,
+                        and production-grade operational standards.
+                    </p>
+                    <div class="hero-actions">
+                        <a class="btn btn-primary" id="github-link" href="https://github.com/hamedtu" target="_blank" rel="noreferrer">GitHub Profile</a>
+                        <a class="btn btn-secondary" id="linkedin-link" href="https://www.linkedin.com/in/hamed-koochaki-kelardeh-phd-8a70133b/" target="_blank" rel="noreferrer">LinkedIn</a>
+                    </div>
+                </div>
+                <div class="hero-photo-wrap">
+                    <img
+                        id="profile-photo"
+                        class="hero-photo"
+                        src="https://raw.githubusercontent.com/hamedtu/CV/main/Profile_Hamed.jpg"
+                        alt="Profile photo of Hamed Koochaki Kelardeh"
+                    >
+                </div>
             </div>
         </section>
 
@@ -388,11 +437,18 @@
 
             const githubLink = document.getElementById('github-link');
             const linkedinLink = document.getElementById('linkedin-link');
+            const profilePhoto = document.getElementById('profile-photo');
             if (contact.github) {
                 githubLink.href = contact.github;
             }
             if (contact.linkedin) {
                 linkedinLink.href = contact.linkedin;
+            }
+            if (profile.photoUrl) {
+                profilePhoto.src = profile.photoUrl;
+            }
+            if (profile.name) {
+                profilePhoto.alt = `Profile photo of ${profile.name}`;
             }
 
             document.getElementById('metrics-grid').innerHTML = (model.impactMetrics || []).map(createMetricCard).join('');
