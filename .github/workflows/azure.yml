@@ -1,0 +1,76 @@
+name: Deploy to Azure Container Apps
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: azure-deploy-main
+  cancel-in-progress: true
+
+env:
+  AZURE_RESOURCE_GROUP: my-app-rg
+  AZURE_LOCATION: westeurope
+  AZURE_CONTAINER_APP_NAME: my-app
+  AZURE_CONTAINER_APP_ENV: my-app-env
+  AZURE_ACR_NAME: myappregistry4785
+  AZURE_ACR_LOGIN_SERVER: myappregistry4785.azurecr.io
+  IMAGE_NAME: my-app
+  CV_REPO: hamedtu/CV
+  CV_REF: main
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    name: Build and deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Login to Azure Container Registry
+        run: az acr login --name $AZURE_ACR_NAME
+
+      - name: Build and push image to ACR
+        id: build-image
+        run: |
+          IMAGE_TAG=${{ github.sha }}
+          IMAGE_URI=$AZURE_ACR_LOGIN_SERVER/$IMAGE_NAME:$IMAGE_TAG
+
+          docker build \
+            --build-arg CV_REPO=$CV_REPO \
+            --build-arg CV_REF=$CV_REF \
+            -t $IMAGE_URI .
+
+          docker push $IMAGE_URI
+          echo "image=$IMAGE_URI" >> $GITHUB_OUTPUT
+
+      - name: Deploy new image to Azure Container App
+        run: |
+          az containerapp update \
+            --name $AZURE_CONTAINER_APP_NAME \
+            --resource-group $AZURE_RESOURCE_GROUP \
+            --image ${{ steps.build-image.outputs.image }} \
+            --set-env-vars PORT=3000 CV_REPO=$CV_REPO CV_REF=$CV_REF
+
+      - name: Show deployed endpoint
+        run: |
+          FQDN=$(az containerapp show \
+            --name $AZURE_CONTAINER_APP_NAME \
+            --resource-group $AZURE_RESOURCE_GROUP \
+            --query properties.configuration.ingress.fqdn \
+            --output tsv)
+          echo "App URL: https://$FQDN"
