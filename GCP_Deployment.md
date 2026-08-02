@@ -182,7 +182,7 @@ Checkpoint:
 
 Current deployed endpoint (as of 2026-08-02):
 
-https://my-app-471120028176.europe-west1.run.app
+https://my-app-zxsnxvcbeq-ew.a.run.app
 
 Get URL:
 
