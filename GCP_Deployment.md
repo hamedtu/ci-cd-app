@@ -192,6 +192,10 @@ Expected:
 
 {"status":"ok"}
 
+Important Cloud Run note:
+
+- Do not set PORT as a custom environment variable. Cloud Run sets PORT automatically.
+
 ## Post-deploy hardening checklist for GCP
 
 1. Use least privilege roles for deployer service account.

@@ -70,7 +70,7 @@ jobs:
             --platform managed \
             --allow-unauthenticated \
             --port 3000 \
-            --set-env-vars PORT=3000,CV_REPO=$CV_REPO,CV_REF=$CV_REF
+            --set-env-vars CV_REPO=$CV_REPO,CV_REF=$CV_REF
 
       - name: Show deployed endpoint
         env:
