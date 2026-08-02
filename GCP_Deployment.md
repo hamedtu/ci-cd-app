@@ -94,7 +94,7 @@ gcloud iam workload-identity-pools create $POOL_ID --location="global" --display
 
 Create provider:
 
-gcloud iam workload-identity-pools providers create-oidc $PROVIDER_ID --location="global" --workload-identity-pool=$POOL_ID --display-name="GitHub Provider" --issuer-uri="https://token.actions.githubusercontent.com" --attribute-mapping="google.subject=assertion.sub,attribute.repository=assertion.repository,attribute.ref=assertion.ref" --project=$PROJECT_ID
+gcloud iam workload-identity-pools providers create-oidc $PROVIDER_ID --location="global" --workload-identity-pool=$POOL_ID --display-name="GitHub Provider" --issuer-uri="https://token.actions.githubusercontent.com" --attribute-mapping="google.subject=assertion.sub,attribute.repository=assertion.repository,attribute.ref=assertion.ref" --attribute-condition="assertion.repository=='hamedtu/ci-cd-app' && assertion.ref=='refs/heads/main'" --project=$PROJECT_ID
 
 Allow your GitHub repo to impersonate this service account:
 
@@ -179,6 +179,10 @@ Checkpoint:
 - Cloud Run URL printed in logs.
 
 ## Interactive Step 9: Verify endpoint and health
+
+Current deployed endpoint (as of 2026-08-02):
+
+https://my-app-471120028176.europe-west1.run.app
 
 Get URL:
 
