@@ -1,0 +1,83 @@
+name: Deploy to Google Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: gcp-deploy-main
+  cancel-in-progress: true
+
+env:
+  GCP_REGION: europe-west1
+  GCP_ARTIFACT_REPO: my-app
+  GCP_CLOUD_RUN_SERVICE: my-app
+  IMAGE_NAME: my-app
+  CV_REPO: hamedtu/CV
+  CV_REF: main
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    name: Build and deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud (OIDC)
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: Setup gcloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker auth for Artifact Registry
+        run: gcloud auth configure-docker ${{ env.GCP_REGION }}-docker.pkg.dev --quiet
+
+      - name: Build and push image to Artifact Registry
+        id: build-image
+        env:
+          PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          IMAGE_URI=${GCP_REGION}-docker.pkg.dev/${PROJECT_ID}/${GCP_ARTIFACT_REPO}/${IMAGE_NAME}:${IMAGE_TAG}
+
+          docker build \
+            --build-arg CV_REPO=$CV_REPO \
+            --build-arg CV_REF=$CV_REF \
+            -t $IMAGE_URI .
+
+          docker push $IMAGE_URI
+          echo "image=$IMAGE_URI" >> $GITHUB_OUTPUT
+
+      - name: Deploy new image to Cloud Run
+        env:
+          PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+        run: |
+          gcloud run deploy $GCP_CLOUD_RUN_SERVICE \
+            --image ${{ steps.build-image.outputs.image }} \
+            --region $GCP_REGION \
+            --project $PROJECT_ID \
+            --platform managed \
+            --allow-unauthenticated \
+            --port 3000 \
+            --set-env-vars PORT=3000,CV_REPO=$CV_REPO,CV_REF=$CV_REF
+
+      - name: Show deployed endpoint
+        env:
+          PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+        run: |
+          URL=$(gcloud run services describe $GCP_CLOUD_RUN_SERVICE \
+            --region $GCP_REGION \
+            --project $PROJECT_ID \
+            --format='value(status.url)')
+          echo "App URL: $URL"
